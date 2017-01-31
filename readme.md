@@ -1,6 +1,6 @@
 ﻿# ServiceStack.Authentication.Marten
 
-This repository provides an implementation of [ServiceStack's](http://servicestack.net) ``UserAuthRepository`` using [Marten](http://jasperfx.github.io/marten/getting_started/) for storage.
+This project provides an implementation of [ServiceStack's](http://servicestack.net) ``UserAuthRepository`` using [Marten](http://jasperfx.github.io/marten/getting_started/) for storage.
 
 
 ## Key features
