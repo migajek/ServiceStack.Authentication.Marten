@@ -14,6 +14,7 @@ This repository provides an implementation of [ServiceStack's](servicestack.net)
 
 1. install it via nuget ``Install-Package ServiceStack.Authentication.Marten``
 2. when configuring Marten, use an ``AuthRepository()`` extension method to configure the storage for both ``UserAuth`` and ``UserAuthDetails`` types (or your own implementations, when using generic version)
+   
    ```csharp
    DocumentStore.For(opts =>
             {      
