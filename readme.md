@@ -14,7 +14,7 @@ This repository provides an implementation of [ServiceStack's](servicestack.net)
 
 1. install it via nuget ``Install-Package ServiceStack.Authentication.Marten``
 2. when configuring Marten, use an ``AuthRepository()`` extension method to configure the storage for both ``UserAuth`` and ``UserAuthDetails`` types (or your own implementations, when using generic version)
-   ```
+   ```csharp
    DocumentStore.For(opts =>
             {      
                 opts.AuthRepository()
@@ -24,7 +24,7 @@ This repository provides an implementation of [ServiceStack's](servicestack.net)
    ```
 3. register the auth repository in the container
     * either provide ``IDocumentStore`` to constructor, to let it handle the session on it's own:
-    ```
+    ```csharp
     // ex.: container.Register<IDocumentStore>(c => new DocumentStoreBuilder().Build())
     //            .ReusedWithin(ReuseScope.Hierarchy);
     container.Register<IUserAuthRepository>(c => new MartenAuthRepository(c.Resolve<IDocumentStore>()))
@@ -32,7 +32,7 @@ This repository provides an implementation of [ServiceStack's](servicestack.net)
     ```
     
     * or provide ``IDocumentSession``, to reuse per-request session
-    ```
+    ```csharp
     // ex. container.Register(c => c.Resolve<IDocumentStore>().OpenSession())
     //            .ReusedWithin(ReuseScope.Request);
     container.Register<IUserAuthRepository>(c => new MartenAuthRepository(c.Resolve<IDocumentSession>()))
