@@ -25,18 +25,15 @@ namespace ServiceStack.Authentication.Marten
         public IMartenAuthRepositoryConfig UseAuthDetails<TAuthDetails>() where TAuthDetails : IUserAuthDetails
         {
             _storeOptions.Schema.For<TAuthDetails>()
-                .Duplicate(x => x.UserAuthId)
-                .Index(x => x.UserAuthId);
+                .Duplicate(x => x.UserAuthId);                
             return this;
         }
 
         public IMartenAuthRepositoryConfig UseAuth<TUserAuth>() where TUserAuth : IUserAuth
         {
             _storeOptions.Schema.For<TUserAuth>()
-                .Duplicate(x => x.Email)
-                .Duplicate(x => x.UserName)
-                .Index(x => x.Email, def => def.IsUnique = true)
-                .Index(x => x.UserName, def => def.IsUnique = true);
+                .Duplicate(x => x.Email, configure: idx => idx.IsUnique = true)
+                .Duplicate(x => x.UserName, configure: idx => idx.IsUnique = true);
             return this;
         }
     }

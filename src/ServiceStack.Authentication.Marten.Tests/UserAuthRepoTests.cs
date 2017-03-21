@@ -1,6 +1,4 @@
 ﻿using System.Linq;
-using Marten;
-using Marten.Linq;
 using ServiceStack.Auth;
 using Xunit;
 

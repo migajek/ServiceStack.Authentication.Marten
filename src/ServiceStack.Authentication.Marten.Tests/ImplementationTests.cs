@@ -39,6 +39,8 @@ namespace ServiceStack.Authentication.Marten.Tests
                 
                 // does not operate on JSONb
                 Assert.DoesNotContain(">", command.CommandText);
+                // matches d.user_name ILIKE 
+                Assert.Matches(@"\w+\.user_name\s+ILIKE", command.CommandText);
             });
         }
 
