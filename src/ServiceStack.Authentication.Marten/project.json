@@ -1,5 +1,5 @@
 {
-  "version": "0.1.1-*",
+  "version": "0.1.2-*",
 
   "packOptions": {
     "iconUrl": "https://raw.githubusercontent.com/migajek/ServiceStack.Authentication.Marten/master/assets/icon.png",
