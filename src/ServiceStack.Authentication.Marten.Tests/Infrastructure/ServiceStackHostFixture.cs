@@ -19,7 +19,7 @@ namespace ServiceStack.Authentication.Marten.Tests.Infrastructure
             container.Register<IDocumentStore>(c => new DocumentStoreBuilder().Build())
                 .ReusedWithin(ReuseScope.Hierarchy);            
 
-            container.Register<IUserAuthRepository>(c => new MartenAuthRepository(c.Resolve<IDocumentStore>()))
+            container.RegisterAutoWiredAs<MartenAuthRepository, IUserAuthRepository>()
                 .ReusedWithin(ReuseScope.Hierarchy);
 
             _appHost.Plugins.Add(new AuthFeature(() => new AuthUserSession(), new IAuthProvider[]

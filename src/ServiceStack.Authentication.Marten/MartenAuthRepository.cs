@@ -8,11 +8,7 @@ namespace ServiceStack.Authentication.Marten
 {
     public class MartenAuthRepository : MartenAuthRepository<UserAuth, UserAuthDetails>
     {
-        public MartenAuthRepository(IDocumentSession documentSession) : base(documentSession)
-        {
-        }
-
-        public MartenAuthRepository(IDocumentStore documentStore) : base(documentStore)
+        public MartenAuthRepository(IDocumentStore documentStore, IHashProvider hashProvider) : base(documentStore, hashProvider)
         {
         }
     }
@@ -22,38 +18,25 @@ namespace ServiceStack.Authentication.Marten
         where TUserAuthDetails : class, IUserAuthDetails
     {
         private readonly IDocumentStore _documentStore;
-        private readonly IDocumentSession _documentSession;
-        public IHashProvider HashProvider { get; set; }
+        private readonly IHashProvider _hashProvider;
 
-        private MartenAuthRepository(IDocumentStore documentStore, IDocumentSession documentSession)
+        public MartenAuthRepository(IDocumentStore documentStore, IHashProvider hashProvider)
         {
             _documentStore = documentStore;
-            _documentSession = documentSession;
+            _hashProvider = hashProvider;
         }
 
-        public MartenAuthRepository(IDocumentSession documentSession) : this(null, documentSession)
-        {
-        }
-
-        public MartenAuthRepository(IDocumentStore documentStore) : this(documentStore, null)
-        {
-        }
 
         internal void Execute(Action<IDocumentSession> fn)
         {
-            if (_documentSession != null)
-                fn(_documentSession);
-            else
-                using (var session = _documentStore.OpenSession())
-                {
-                    fn(session);
-                }
+            using (var session = _documentStore.OpenSession())
+            {
+                fn(session);
+            }
         }
 
         internal T Execute<T>(Func<IDocumentSession, T> fn)
-        {
-            if (_documentSession != null)
-                return fn(_documentSession);
+        {           
             using (var session = _documentStore.OpenSession())
             {
                 return fn(session);
@@ -231,7 +214,7 @@ namespace ServiceStack.Authentication.Marten
             if (userAuth == null)
                 return false;
 
-            if (HashProvider.VerifyHashString(password, userAuth.PasswordHash, userAuth.Salt))
+            if (_hashProvider.VerifyHashString(password, userAuth.PasswordHash, userAuth.Salt))
             {
                 this.RecordSuccessfulLogin(userAuth);
                 return true;
@@ -293,7 +276,7 @@ namespace ServiceStack.Authentication.Marten
 
                 string salt;
                 string hash;
-                HashProvider.GetHashAndSaltString(password, out hash, out salt);
+                _hashProvider.GetHashAndSaltString(password, out hash, out salt);
                 var digestHelper = new DigestAuthFunctions();
                 newUser.DigestHa1Hash = digestHelper.CreateHa1(newUser.UserName, DigestAuthProvider.Realm, password);
                 newUser.PasswordHash = hash;
@@ -342,7 +325,7 @@ namespace ServiceStack.Authentication.Marten
                 var hash = existingUser.PasswordHash;
                 var salt = existingUser.Salt;
                 if (password != null)
-                    HashProvider.GetHashAndSaltString(password, out hash, out salt);
+                    _hashProvider.GetHashAndSaltString(password, out hash, out salt);
 
                 // If either one changes the digest hash has to be recalculated
                 var digestHash = existingUser.DigestHa1Hash;

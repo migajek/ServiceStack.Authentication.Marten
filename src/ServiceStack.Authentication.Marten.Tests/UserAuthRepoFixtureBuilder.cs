@@ -55,7 +55,7 @@ namespace ServiceStack.Authentication.Marten.Tests
       
         public MartenAuthRepository<UserAuth, UserAuthDetails> Build()
         {
-            var sut = new MartenAuthRepository<UserAuth, UserAuthDetails>(_store) {HashProvider = _hashMock};
+            var sut = new MartenAuthRepository<UserAuth, UserAuthDetails>(_store, _hashMock);
             _users.Each(kv => sut.CreateUserAuth(kv.Key, kv.Value));
             return sut;
         }
