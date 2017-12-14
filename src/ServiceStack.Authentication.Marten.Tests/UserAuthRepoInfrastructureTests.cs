@@ -24,7 +24,7 @@ namespace ServiceStack.Authentication.Marten.Tests
             Assert.Null(user);
 
             Assert.Equal(1, user2.InvalidLoginAttempts);
-            Assert.True((DateTime.UtcNow - user2.LastLoginAttempt.Value).TotalSeconds <= 1);            
+            Assert.True((DateTime.UtcNow - user2.LastLoginAttempt.Value).TotalSeconds <= 1);
         }
     }
 }

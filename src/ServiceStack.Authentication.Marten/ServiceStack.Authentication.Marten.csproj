@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>0.2.0</VersionPrefix>
-    <TargetFrameworks>netstandard1.6;net46</TargetFrameworks>
+    <VersionPrefix>0.4.0</VersionPrefix>
+    <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
     <AssemblyName>ServiceStack.Authentication.Marten</AssemblyName>
     <PackageId>ServiceStack.Authentication.Marten</PackageId>
     <PackageTags>ServiceStack;Marten;Authentication;Document Store;DocumentStore</PackageTags>
     <PackageIconUrl>https://raw.githubusercontent.com/migajek/ServiceStack.Authentication.Marten/master/assets/icon.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/migajek/ServiceStack.Authentication.Marten</PackageProjectUrl>
-    <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
+    <NetStandardImplicitPackageVersion>2.0.0</NetStandardImplicitPackageVersion>
     <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.6' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
@@ -16,16 +16,17 @@
     <Version>0.3.0</Version>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard1.6|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Marten" Version="1.2.5" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.6' ">
-    <PackageReference Include="ServiceStack.Core" Version="1.0.41" />
+    <PackageReference Include="ServiceStack" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <PackageReference Include="ServiceStack" Version="4.5.4" />
+    <PackageReference Include="ServiceStack" Version="5.0.0" />
     <Reference Include="System.Data" />
     <Reference Include="System.Threading.Tasks" />
     <Reference Include="System" />

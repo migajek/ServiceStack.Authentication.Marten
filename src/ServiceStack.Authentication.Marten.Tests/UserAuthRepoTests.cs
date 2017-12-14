@@ -96,7 +96,7 @@ namespace ServiceStack.Authentication.Marten.Tests
             var invalidUserPermission = sut.HasPermission("2", "perm2");
 
             Assert.True(result);
-            Assert.False(invalidUserPermission);
+            Assert.False(invalidPermission);
             Assert.False(invalidUserPermission);
         }
        
