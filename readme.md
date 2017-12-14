@@ -10,6 +10,10 @@ This project provides an implementation of [ServiceStack's](http://servicestack.
 * it's generic: supports custom implementations of ``UserAuth`` and ``UserAuthDetails``
 * can manage the ``IDocumentSession`` on it's own, or reuse the request-scoped session
 
+## Release Notes
+ * 0.4.0 support for ServiceStack >= 5.0
+ * 0.3.0 support for Marten >= 2.0
+
 ## Getting started
 
 1. install it via nuget ``Install-Package ServiceStack.Authentication.Marten``
