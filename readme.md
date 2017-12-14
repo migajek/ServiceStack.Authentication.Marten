@@ -8,7 +8,6 @@ This project provides an implementation of [ServiceStack's](http://servicestack.
 * supports .NET 4.6 and .NET Core
 * handles user & role/permission management (implements ``IUserAuthRepository, IManageRoles``)
 * it's generic: supports custom implementations of ``UserAuth`` and ``UserAuthDetails``
-* can manage the ``IDocumentSession`` on it's own, or reuse the request-scoped session
 
 ## Release Notes
  * 0.4.0 support for ServiceStack >= 5.0
@@ -27,22 +26,14 @@ This project provides an implementation of [ServiceStack's](http://servicestack.
                     .UseAuthDetails<UserAuthDetails>();
             });
    ```
-3. register the auth repository in the container
-    * either provide ``IDocumentStore`` to constructor, to let it handle the session on it's own:
+3. register the auth repository in the container    
     ```csharp
     // ex.: container.Register<IDocumentStore>(c => new DocumentStoreBuilder().Build())
     //            .ReusedWithin(ReuseScope.Hierarchy);
-    container.Register<IUserAuthRepository>(c => new MartenAuthRepository(c.Resolve<IDocumentStore>()))
+    container.RegisterAutoWiredAs<MartenAuthRepository, IUserAuthRepository>()
                 .ReusedWithin(ReuseScope.Hierarchy);
     ```
     
-    * or provide ``IDocumentSession``, to reuse per-request session
-    ```csharp
-    // ex. container.Register(c => c.Resolve<IDocumentStore>().OpenSession())
-    //            .ReusedWithin(ReuseScope.Request);
-    container.Register<IUserAuthRepository>(c => new MartenAuthRepository(c.Resolve<IDocumentSession>()))
-                .ReusedWithin(ReuseScope.Request);
-    ```
 
 ## Missing features / roadmap
 * no support for Marten as Event Store (yet ..)
