@@ -11,7 +11,7 @@ namespace ServiceStack.Authentication.Marten
         public MartenAuthRepository(IDocumentStore documentStore, IHashProvider hashProvider) : base(documentStore, hashProvider)
         {
         }
-    }
+    }    
 
     public class MartenAuthRepository<TUserAuth, TUserAuthDetails> : IUserAuthRepository, IManageRoles
         where TUserAuth : class, IUserAuth
@@ -274,9 +274,7 @@ namespace ServiceStack.Authentication.Marten
             {
                 AssertNoExistingUser(session, newUser);
 
-                string salt;
-                string hash;
-                _hashProvider.GetHashAndSaltString(password, out hash, out salt);
+                _hashProvider.GetHashAndSaltString(password, out var hash, out var salt);
                 var digestHelper = new DigestAuthFunctions();
                 newUser.DigestHa1Hash = digestHelper.CreateHa1(newUser.UserName, DigestAuthProvider.Realm, password);
                 newUser.PasswordHash = hash;

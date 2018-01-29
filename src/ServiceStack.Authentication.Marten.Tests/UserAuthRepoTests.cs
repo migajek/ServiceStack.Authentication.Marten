@@ -32,8 +32,8 @@ namespace ServiceStack.Authentication.Marten.Tests
                     new UserAuth() {UserName = "Alice"}
                 )
                 .Build();
-
-            sut.Execute(session => Assert.Equal(2, session.Query<UserAuth>().Count()));
+            
+            Assert.Equal(2, sut.Execute(session => session.Query<UserAuth>().Count()));
         }
 
         [Fact]
