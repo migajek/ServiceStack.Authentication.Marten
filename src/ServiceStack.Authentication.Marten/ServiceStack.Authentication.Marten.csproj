@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>0.4.1</VersionPrefix>
     <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
     <AssemblyName>ServiceStack.Authentication.Marten</AssemblyName>
     <PackageId>ServiceStack.Authentication.Marten</PackageId>
@@ -14,7 +13,7 @@
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <Description>UserAuthRepository implementation using Marten Document Database</Description>
-    <Version>0.4.1</Version>
+    <Version>0.5.0</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard1.6|AnyCPU'">

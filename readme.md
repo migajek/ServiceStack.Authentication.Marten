@@ -6,10 +6,12 @@ This project provides an implementation of [ServiceStack's](http://servicestack.
 ## Key features
 
 * supports .NET 4.6 and .NET Core
-* handles user & role/permission management (implements ``IUserAuthRepository, IManageRoles``)
 * it's generic: supports custom implementations of ``UserAuth`` and ``UserAuthDetails``
+* handles user & role/permission management (implements ``IUserAuthRepository, IManageRoles``)
+* handles API Key management (implements ``IManageApiKeys``)
 
 ## Release Notes
+ * 0.5.0 implemented ``IManageApiKeys``
  * 0.4.0 support for ServiceStack >= 5.0
  * 0.3.0 support for Marten >= 2.0
 

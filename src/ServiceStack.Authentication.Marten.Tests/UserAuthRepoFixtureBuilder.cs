@@ -10,6 +10,7 @@ namespace ServiceStack.Authentication.Marten.Tests
     {
         private readonly IDocumentStore _store;
         private readonly IDictionary<UserAuth, string> _users = new Dictionary<UserAuth, string>();           
+        private readonly List<ApiKey> _apiKeys = new List<ApiKey>();
 
         public UserAuthRepoFixtureBuilder()
         {
@@ -25,6 +26,7 @@ namespace ServiceStack.Authentication.Marten.Tests
         {
             var sut = new MartenAuthRepository<UserAuth, UserAuthDetails>(_store, new HashProviderMock());
             _users.Each(kv => sut.CreateUserAuth(kv.Key, kv.Value));
+            ((IManageApiKeys) sut).StoreAll(_apiKeys);
             return sut;
         }
 
@@ -37,6 +39,12 @@ namespace ServiceStack.Authentication.Marten.Tests
         public UserAuthRepoFixtureBuilder WithUser(UserAuth user, string password)
         {
             _users[user] = password;
+            return this;
+        }
+
+        public UserAuthRepoFixtureBuilder WithApiKeys(params ApiKey[] apiKeys)
+        {
+            _apiKeys.AddRange(apiKeys);
             return this;
         }
     }

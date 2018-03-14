@@ -1,5 +1,4 @@
 using Marten;
-using Marten.Schema;
 using ServiceStack.Auth;
 
 namespace ServiceStack.Authentication.Marten
@@ -34,6 +33,14 @@ namespace ServiceStack.Authentication.Marten
             _storeOptions.Schema.For<TUserAuth>()
                 .Duplicate(x => x.Email, configure: idx => idx.IsUnique = true)
                 .Duplicate(x => x.UserName, configure: idx => idx.IsUnique = true);
+            return this;
+        }
+
+        public IMartenAuthRepositoryConfig ConfigureApiKeys()
+        {
+            _storeOptions.Schema.For<ApiKey>()
+                .Duplicate(x => x.UserAuthId);
+
             return this;
         }
     }

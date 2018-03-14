@@ -13,7 +13,7 @@ namespace ServiceStack.Authentication.Marten
         }
     }    
 
-    public class MartenAuthRepository<TUserAuth, TUserAuthDetails> : IUserAuthRepository, IManageRoles
+    public class MartenAuthRepository<TUserAuth, TUserAuthDetails> : IUserAuthRepository, IManageRoles, IManageApiKeys
         where TUserAuth : class, IUserAuth
         where TUserAuthDetails : class, IUserAuthDetails
     {
@@ -424,6 +424,38 @@ namespace ServiceStack.Authentication.Marten
                 permissions.Each(permission => user.Permissions.Remove(permission));
 
                 SaveUserAuth(session, user);
+                session.SaveChanges();
+            });
+        }
+
+        public void InitApiKeySchema()
+        {
+            // empty on purpose. This should be done by an extension method when initializing Marten store
+        }
+
+        public bool ApiKeyExists(string apiKey)
+        {
+            return Execute(session => session.Load<ApiKey>(apiKey) != null);
+        }
+
+        public ApiKey GetApiKey(string apiKey)
+        {
+            return Execute(session => session.Load<ApiKey>(apiKey));
+        }
+
+        public List<ApiKey> GetUserApiKeys(string userId)
+        {
+            return Execute(session => session.Query<ApiKey>().Where(x => x.UserAuthId == userId).ToList());
+        }
+
+        public void StoreAll(IEnumerable<ApiKey> apiKeys)
+        {
+            Execute(session =>
+            {
+                foreach (var key in apiKeys)
+                {
+                    session.Store(key);
+                }
                 session.SaveChanges();
             });
         }
