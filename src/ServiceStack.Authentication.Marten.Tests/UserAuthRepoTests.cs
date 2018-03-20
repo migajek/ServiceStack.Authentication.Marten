@@ -1,11 +1,20 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using ServiceStack.Auth;
+using ServiceStack.Testing;
 using Xunit;
 
 namespace ServiceStack.Authentication.Marten.Tests
 {
-    public class UserAuthRepoTests
+    public class UserAuthRepoTests: IDisposable
     {
+        private readonly IDisposable _appHost = new BasicAppHost().Init();        
+
+        public void Dispose()
+        {
+            _appHost.Dispose();
+        }
+
         [Fact]
         public void Can_create_user()
         {

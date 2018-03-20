@@ -8,7 +8,7 @@ namespace ServiceStack.Authentication.Marten
 {
     public class MartenAuthRepository : MartenAuthRepository<UserAuth, UserAuthDetails>
     {
-        public MartenAuthRepository(IDocumentStore documentStore, IHashProvider hashProvider) : base(documentStore, hashProvider)
+        public MartenAuthRepository(IDocumentStore documentStore, IHashProvider hashProvider) : base(documentStore)
         {
         }
     }    
@@ -18,12 +18,10 @@ namespace ServiceStack.Authentication.Marten
         where TUserAuthDetails : class, IUserAuthDetails
     {
         private readonly IDocumentStore _documentStore;
-        private readonly IHashProvider _hashProvider;
 
-        public MartenAuthRepository(IDocumentStore documentStore, IHashProvider hashProvider)
+        public MartenAuthRepository(IDocumentStore documentStore)
         {
             _documentStore = documentStore;
-            _hashProvider = hashProvider;
         }
 
 
@@ -214,9 +212,9 @@ namespace ServiceStack.Authentication.Marten
             if (userAuth == null)
                 return false;
 
-            if (_hashProvider.VerifyHashString(password, userAuth.PasswordHash, userAuth.Salt))
+            if (userAuth.VerifyPassword(password, out var needsRehash))
             {
-                this.RecordSuccessfulLogin(userAuth);
+                this.RecordSuccessfulLogin(userAuth, needsRehash, password);
                 return true;
             }
 
@@ -234,8 +232,7 @@ namespace ServiceStack.Authentication.Marten
             if (userAuth == null)
                 return false;
 
-            var digestHelper = new DigestAuthFunctions();
-            if (digestHelper.ValidateResponse(digestHeaders, privateKey, nonceTimeOut, userAuth.DigestHa1Hash, sequence))
+            if (userAuth.VerifyDigestAuth(digestHeaders, privateKey, nonceTimeOut, sequence))
             {
                 this.RecordSuccessfulLogin(userAuth);
                 return true;
@@ -266,28 +263,34 @@ namespace ServiceStack.Authentication.Marten
             }
         }
 
-        public IUserAuth CreateUserAuth(IUserAuth newUser, string password)
+        public IUserAuth CreateUserAuth(IUserAuth newUser, string passwordHash, string authDigest, string salt)
         {
-            newUser.ValidateNewUser(password);
+            newUser.ValidateNewUser();
 
             return Execute(session =>
             {
                 AssertNoExistingUser(session, newUser);
 
-                _hashProvider.GetHashAndSaltString(password, out var hash, out var salt);
-                var digestHelper = new DigestAuthFunctions();
-                newUser.DigestHa1Hash = digestHelper.CreateHa1(newUser.UserName, DigestAuthProvider.Realm, password);
-                newUser.PasswordHash = hash;
+                newUser.PasswordHash = passwordHash;
+                newUser.DigestHa1Hash = authDigest;
                 newUser.Salt = salt;
+
                 newUser.CreatedDate = DateTime.UtcNow;
                 newUser.ModifiedDate = newUser.CreatedDate;
 
-                session.Store((TUserAuth) newUser);
+                session.Store((TUserAuth)newUser);
 
                 newUser = session.Load<TUserAuth>(newUser.Id);
                 session.SaveChanges();
                 return newUser;
             });
+        }
+
+        public IUserAuth CreateUserAuth(IUserAuth newUser, string password)
+        {
+            newUser.ValidateNewUser(password);
+            newUser.PopulatePasswordHashes(password);
+            return CreateUserAuth(newUser, newUser.PasswordHash, newUser.DigestHa1Hash, newUser.Salt);
         }
 
         public IUserAuth UpdateUserAuth(IUserAuth existingUser, IUserAuth newUser)
@@ -319,22 +322,9 @@ namespace ServiceStack.Authentication.Marten
             return Execute(session =>
             {
                 AssertNoExistingUser(session, newUser, existingUser);
-
-                var hash = existingUser.PasswordHash;
-                var salt = existingUser.Salt;
-                if (password != null)
-                    _hashProvider.GetHashAndSaltString(password, out hash, out salt);
-
-                // If either one changes the digest hash has to be recalculated
-                var digestHash = existingUser.DigestHa1Hash;
-                if (password != null || existingUser.UserName != newUser.UserName)
-                    digestHash = new DigestAuthFunctions().CreateHa1(newUser.UserName, DigestAuthProvider.Realm,
-                        password);
-
+                
                 newUser.Id = existingUser.Id;
-                newUser.PasswordHash = hash;
-                newUser.Salt = salt;
-                newUser.DigestHa1Hash = digestHash;
+                newUser.PopulatePasswordHashes(password, existingUser);
                 newUser.CreatedDate = existingUser.CreatedDate;
                 newUser.ModifiedDate = DateTime.UtcNow;
 
