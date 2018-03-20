@@ -11,6 +11,7 @@ This project provides an implementation of [ServiceStack's](http://servicestack.
 * handles API Key management (implements ``IManageApiKeys``)
 
 ## Release Notes
+ * 0.6.0 updated hashing to reflect changes in ServiceStack 5. Extacted public CreateUser method to be used with event store projections
  * 0.5.0 implemented ``IManageApiKeys``
  * 0.4.0 support for ServiceStack >= 5.0
  * 0.3.0 support for Marten >= 2.0
@@ -38,6 +39,6 @@ This project provides an implementation of [ServiceStack's](http://servicestack.
     
 
 ## Missing features / roadmap
-* no support for Marten as Event Store (yet ..)
+* ~no support for Marten as Event Store (yet ..)~ provide demo of Event Store approach
 * optional ``StoreChanges`` call when re-using IDocumentSession
 * full test coverage
