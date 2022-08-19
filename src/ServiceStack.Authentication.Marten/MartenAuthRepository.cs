@@ -11,7 +11,7 @@ namespace ServiceStack.Authentication.Marten
         public MartenAuthRepository(IDocumentStore documentStore, IHashProvider hashProvider) : base(documentStore)
         {
         }
-    }    
+    }
 
     public class MartenAuthRepository<TUserAuth, TUserAuthDetails> : IUserAuthRepository, IManageRoles, IManageApiKeys
         where TUserAuth : class, IUserAuth
@@ -34,7 +34,7 @@ namespace ServiceStack.Authentication.Marten
         }
 
         internal T Execute<T>(Func<IDocumentSession, T> fn)
-        {           
+        {
             using (var session = _documentStore.OpenSession())
             {
                 return fn(session);
@@ -47,13 +47,12 @@ namespace ServiceStack.Authentication.Marten
                 throw new ArgumentNullException(nameof(session));
 
             var userAuth = GetUserAuth(session, tokens);
-            LoadUserAuth(session, userAuth);
+            LoadUserAuth(session, (TUserAuth)userAuth);
         }
 
         private void LoadUserAuth(IAuthSession session, IUserAuth userAuth)
         {
-            session.PopulateSession(userAuth,
-                GetUserAuthDetails(session.UserAuthId).ConvertAll(x => (IAuthTokens) x));
+            session.PopulateSession(userAuth, this);
         }
 
         public virtual IUserAuth GetUserAuth(string userAuthId)
@@ -252,14 +251,14 @@ namespace ServiceStack.Authentication.Marten
                 var existingUser = GetUserAuthByUserName(session, newUser.UserName);
                 if (existingUser != null
                     && (exceptForExistingUser == null || existingUser.Id != exceptForExistingUser.Id))
-                    throw new ArgumentException(string.Format(ErrorMessages.UserAlreadyExistsTemplate1, newUser.UserName));
+                    throw new ArgumentException(ErrorMessages.UserAlreadyExistsFmt.LocalizeFmt(newUser.UserName.SafeInput()));
             }
             if (newUser.Email != null)
             {
                 var existingUser = GetUserAuthByUserName(session, newUser.Email);
                 if (existingUser != null
                     && (exceptForExistingUser == null || existingUser.Id != exceptForExistingUser.Id))
-                    throw new ArgumentException(string.Format(ErrorMessages.EmailAlreadyExistsTemplate1, newUser.Email));
+                    throw new ArgumentException(ErrorMessages.EmailAlreadyExistsFmt.LocalizeFmt(newUser.Email.SafeInput()));
             }
         }
 
@@ -322,7 +321,7 @@ namespace ServiceStack.Authentication.Marten
             return Execute(session =>
             {
                 AssertNoExistingUser(session, newUser, existingUser);
-                
+
                 newUser.Id = existingUser.Id;
                 newUser.PopulatePasswordHashes(password, existingUser);
                 newUser.CreatedDate = existingUser.CreatedDate;
@@ -334,7 +333,7 @@ namespace ServiceStack.Authentication.Marten
                 return newUser;
             });
         }
-        
+
         public void DeleteUserAuth(string userAuthId)
         {
             Execute(session =>
@@ -358,6 +357,12 @@ namespace ServiceStack.Authentication.Marten
         {
             var userAuth = GetUserAuth(userAuthId);
             return userAuth?.Permissions;
+        }
+
+        public void GetRolesAndPermissions(string userAuthId, out ICollection<string> roles, out ICollection<string> permissions)
+        {
+            roles = GetRoles(userAuthId);
+            permissions = GetPermissions(userAuthId);
         }
 
         public bool HasRole(string userAuthId, string role)
