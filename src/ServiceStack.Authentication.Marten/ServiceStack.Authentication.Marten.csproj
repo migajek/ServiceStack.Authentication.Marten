@@ -1,14 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>ServiceStack.Authentication.Marten</AssemblyName>
     <PackageId>ServiceStack.Authentication.Marten</PackageId>
     <PackageTags>ServiceStack;Marten;Authentication;Document Store;DocumentStore</PackageTags>
     <PackageIconUrl>https://raw.githubusercontent.com/migajek/ServiceStack.Authentication.Marten/master/assets/icon.png</PackageIconUrl>
     <PackageProjectUrl>https://github.com/migajek/ServiceStack.Authentication.Marten</PackageProjectUrl>
-    <NetStandardImplicitPackageVersion>2.0.0</NetStandardImplicitPackageVersion>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netstandard1.6' ">$(PackageTargetFallback);dnxcore50</PackageTargetFallback>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
@@ -16,21 +14,9 @@
     <Version>0.6.0</Version>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard1.6|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Marten" Version="2.5.0" />
-    <PackageReference Include="ServiceStack" Version="5.0.2" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <PackageReference Include="ServiceStack" Version="5.0.0" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Threading.Tasks" />
-    <Reference Include="System" />
-    <Reference Include="Microsoft.CSharp" />
+    <PackageReference Include="Marten" Version="5.6.0" />
+    <PackageReference Include="ServiceStack" Version="6.1.0" />
   </ItemGroup>
 
 </Project>
