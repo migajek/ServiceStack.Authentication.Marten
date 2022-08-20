@@ -21,5 +21,9 @@ jobs:
       run: dotnet restore ./src/
     - name: Build
       run: dotnet build ./src/ --no-restore
+    - name: Run docker-compose
+      run: docker-compose up
     - name: Test
       run: dotnet test ./src/ --no-build --verbosity normal
+    - name: Shutdown docker-compose
+      run: docker-compose down
