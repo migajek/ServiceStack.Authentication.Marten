@@ -1,0 +1,15 @@
+# used for testing environment 
+
+version: '3.1'
+
+services:
+  martentestdb:
+    image: postgres:14.5-alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: testpwd
+      POSTGRES_USER: marten
+      POSTGRES_DB: marten-testing
+      # POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - 5432:5432
