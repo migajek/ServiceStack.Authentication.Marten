@@ -9,7 +9,7 @@ namespace ServiceStack.Authentication.Marten.Tests.Infrastructure
         {
             var store = DocumentStore.For(opts =>
             {
-                opts.Connection("host=localhost;username=marten;database=marten-testing");
+                opts.Connection("host=localhost;username=marten;password=testpwd;database=marten-testing");
                 opts.AuthRepository()
                     .UseAuth<UserAuth>()
                     .UseAuthDetails<UserAuthDetails>();
