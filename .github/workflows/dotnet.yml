@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "master" ]
 
+env:
+  
+
 jobs:
   build:
 
@@ -31,3 +34,16 @@ jobs:
       uses: sudo-bot/action-docker-compose@latest
       with: 
         cli-args: "down"
+
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x    
+    - name: Build
+      run: dotnet pack --configuration Release ./src/
+    - name: Publish
+      run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json
