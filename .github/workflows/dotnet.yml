@@ -22,8 +22,12 @@ jobs:
     - name: Build
       run: dotnet build ./src/ --no-restore
     - name: Run docker-compose
-      run: docker-compose up
+      uses: sudo-bot/action-docker-compose@latest
+      with: 
+        cli-args: "up -d"
     - name: Test
       run: dotnet test ./src/ --no-build --verbosity normal
     - name: Shutdown docker-compose
-      run: docker-compose down
+      uses: sudo-bot/action-docker-compose@latest
+      with: 
+        cli-args: "down"
