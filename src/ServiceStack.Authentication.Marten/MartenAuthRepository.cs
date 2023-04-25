@@ -344,6 +344,8 @@ namespace ServiceStack.Authentication.Marten
 
                 var userAuthDetails = session.Query<TUserAuthDetails>().Where(x => x.UserAuthId == userId).ToList();
                 userAuthDetails.ForEach(userAuthDetail => session.Delete<TUserAuthDetails>(userAuthDetail));
+                
+                session.SaveChanges();
             });
         }
 
