@@ -11,7 +11,7 @@ This project provides an implementation of [ServiceStack's](http://servicestack.
 * handles API Key management (implements ``IManageApiKeys``)
 
 ## Release Notes
- * 0.7.0 updated to Marten >= 6.0.5, ServiceStack >= 6.5.0
+ * 0.8.0 updated to Marten >= 6.0.5, ServiceStack >= 6.5.0
  * 0.6.0 updated hashing to reflect changes in ServiceStack 5. Extacted public CreateUser method to be used with event store projections
  * 0.5.0 implemented ``IManageApiKeys``
  * 0.4.0 support for ServiceStack >= 5.0
