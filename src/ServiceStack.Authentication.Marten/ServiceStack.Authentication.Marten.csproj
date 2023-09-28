@@ -12,11 +12,12 @@
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <Description>UserAuthRepository implementation using Marten Document Database</Description>
     <Version>0.7.0</Version>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Marten" Version="5.6.0" />
-    <PackageReference Include="ServiceStack" Version="6.1.0" />
+    <PackageReference Include="Marten" Version="6.0.5" />
+    <PackageReference Include="ServiceStack" Version="6.5.0" />
   </ItemGroup>
 
 </Project>

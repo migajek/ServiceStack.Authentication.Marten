@@ -6,16 +6,51 @@ using Marten;
 
 namespace ServiceStack.Authentication.Marten
 {
+    public interface IMartenAuthRepository : IUserAuthRepository
+    {
+        IUserAuth CreateUserAuth(IUserAuth newUser, string passwordHash, string authDigest, string salt);
+    }
+
     public class MartenAuthRepository : MartenAuthRepository<UserAuth, UserAuthDetails>
     {
-        public MartenAuthRepository(IDocumentStore documentStore, IHashProvider hashProvider) : base(documentStore)
+        public MartenAuthRepository(IDocumentStore documentStore) : base(documentStore)
         {
         }
     }
 
-    public class MartenAuthRepository<TUserAuth, TUserAuthDetails> : IUserAuthRepository, IManageRoles, IManageApiKeys
+    /// <summary>
+    /// Auth repository to be used embedded in a custom projection. It doesn't manage own DocumentSession,
+    /// only relies on DocumentOperations passed from outside - i.e. from projection
+    /// </summary>
+    /// <typeparam name="TUserAuth"></typeparam>
+    /// <typeparam name="TUserAuthDetails"></typeparam>
+    public class
+        MartenEmbeddedAuthRepository<TUserAuth, TUserAuthDetails> : MartenAuthRepositoryBase<TUserAuth,
+            TUserAuthDetails>
         where TUserAuth : class, IUserAuth
         where TUserAuthDetails : class, IUserAuthDetails
+    {
+        private readonly IDocumentOperations _documentOperations;
+
+        public MartenEmbeddedAuthRepository(IDocumentOperations documentOperations)
+        {
+            _documentOperations = documentOperations;
+        }
+
+        internal override void Execute(Action<IDocumentOperations> fn) => fn(_documentOperations);
+
+        internal override T Execute<T>(Func<IDocumentOperations, T> fn) => fn(_documentOperations);
+    }
+
+    /// <summary>
+    /// Regular, stand-alone Marten auth repository
+    /// </summary>
+    /// <typeparam name="TUserAuth"></typeparam>
+    /// <typeparam name="TUserAuthDetails"></typeparam>
+    public class
+        MartenAuthRepository<TUserAuth, TUserAuthDetails> : MartenAuthRepositoryBase<TUserAuth, TUserAuthDetails>
+        where TUserAuth : class, IUserAuth
+        where TUserAuthDetails : class, IUserAuthDetails 
     {
         private readonly IDocumentStore _documentStore;
 
@@ -24,23 +59,32 @@ namespace ServiceStack.Authentication.Marten
             _documentStore = documentStore;
         }
 
-
-        internal void Execute(Action<IDocumentSession> fn)
+        internal override void Execute(Action<IDocumentOperations> fn)
         {
-            using (var session = _documentStore.OpenSession())
-            {
-                fn(session);
-            }
+            using var session = GetDocumentSession();
+            fn(session);
+            session.SaveChanges();
         }
 
-        internal T Execute<T>(Func<IDocumentSession, T> fn)
+        internal override T Execute<T>(Func<IDocumentOperations, T> fn)
         {
-            using (var session = _documentStore.OpenSession())
-            {
-                return fn(session);
-            }
+            using var session = GetDocumentSession();
+            var result = fn(session);
+            session.SaveChanges();
+            return result;
         }
 
+        private IDocumentSession GetDocumentSession() => _documentStore.IdentitySession();
+    }
+
+    public abstract class MartenAuthRepositoryBase<TUserAuth, TUserAuthDetails> : IMartenAuthRepository,  IUserAuthRepository, IManageRoles, IManageApiKeys
+        where TUserAuth : class, IUserAuth
+        where TUserAuthDetails : class, IUserAuthDetails
+    {
+
+        internal abstract void Execute(Action<IDocumentOperations> fn);
+
+        internal abstract T Execute<T>(Func<IDocumentOperations, T> fn);
         public void LoadUserAuth(IAuthSession session, IAuthTokens tokens)
         {
             if (session == null)
@@ -79,7 +123,6 @@ namespace ServiceStack.Authentication.Marten
                     userAuth.CreatedDate = userAuth.ModifiedDate;
 
                 session.Store(userAuth);
-                session.SaveChanges();
             });
         }
 
@@ -131,7 +174,6 @@ namespace ServiceStack.Authentication.Marten
                     authDetails.CreatedDate = userAuth.ModifiedDate;
 
                 session.Store(authDetails);
-                session.SaveChanges();
                 return authDetails;
             });
         }
@@ -173,7 +215,7 @@ namespace ServiceStack.Authentication.Marten
             return Execute(session => GetUserAuthByUserName(session, userNameOrEmail));
         }
 
-        public TUserAuth GetUserAuthByUserName(IDocumentSession session, string userNameOrEmail)
+        public TUserAuth GetUserAuthByUserName(IDocumentOperations session, string userNameOrEmail)
         {
             var isEmail = userNameOrEmail.Contains("@");
             return isEmail
@@ -192,11 +234,10 @@ namespace ServiceStack.Authentication.Marten
             Execute(session =>
             {
                 SaveUserAuth(session, userAuth);
-                session.SaveChanges();
             });
         }
 
-        private void SaveUserAuth(IDocumentSession session, IUserAuth userAuth)
+        private void SaveUserAuth(IDocumentOperations session, IUserAuth userAuth)
         {
             userAuth.ModifiedDate = DateTime.UtcNow;
             if (userAuth.CreatedDate == default(DateTime))
@@ -243,7 +284,7 @@ namespace ServiceStack.Authentication.Marten
             return false;
         }
 
-        protected virtual void AssertNoExistingUser(IDocumentSession session, IUserAuth newUser,
+        protected virtual void AssertNoExistingUser(IDocumentOperations session, IUserAuth newUser,
             IUserAuth exceptForExistingUser = null)
         {
             if (newUser.UserName != null)
@@ -280,7 +321,6 @@ namespace ServiceStack.Authentication.Marten
                 session.Store((TUserAuth)newUser);
 
                 newUser = session.Load<TUserAuth>(newUser.Id);
-                session.SaveChanges();
                 return newUser;
             });
         }
@@ -300,17 +340,29 @@ namespace ServiceStack.Authentication.Marten
             {
                 AssertNoExistingUser(session, newUser, existingUser);
 
-                newUser.Id = existingUser.Id;
-                newUser.PasswordHash = existingUser.PasswordHash;
-                newUser.Salt = existingUser.Salt;
-                newUser.DigestHa1Hash = existingUser.DigestHa1Hash;
-                newUser.CreatedDate = existingUser.CreatedDate;
-                newUser.ModifiedDate = DateTime.UtcNow;
+                var userCopy = new
+                {
+                    existingUser.Id,
+                    existingUser.PasswordHash,
+                    existingUser.Salt,
+                    existingUser.DigestHa1Hash,
+                    existingUser.CreatedDate,
+                };
 
-                session.Store((TUserAuth) newUser);
-                session.SaveChanges();
+                // populate properties from newUser
+                existingUser.PopulateWith(newUser);
 
-                return newUser;
+                // restore these original props
+                existingUser.Id = userCopy.Id;
+                existingUser.PasswordHash ??= userCopy.PasswordHash;
+                existingUser.Salt ??= userCopy.Salt;
+                existingUser.DigestHa1Hash = userCopy.DigestHa1Hash;
+                existingUser.CreatedDate = userCopy.CreatedDate;
+                existingUser.ModifiedDate = DateTime.UtcNow;
+
+                session.Store((TUserAuth) existingUser);
+
+                return existingUser;
             });
         }
 
@@ -328,7 +380,6 @@ namespace ServiceStack.Authentication.Marten
                 newUser.ModifiedDate = DateTime.UtcNow;
 
                 session.Store((TUserAuth) newUser);
-                session.SaveChanges();
 
                 return newUser;
             });
@@ -341,9 +392,7 @@ namespace ServiceStack.Authentication.Marten
                 var userId = int.Parse(userAuthId);
 
                 session.Delete<TUserAuth>(userId);
-
-                var userAuthDetails = session.Query<TUserAuthDetails>().Where(x => x.UserAuthId == userId).ToList();
-                userAuthDetails.ForEach(userAuthDetail => session.Delete<TUserAuthDetails>(userAuthDetail));
+                session.DeleteWhere<TUserAuthDetails>(x => x.UserAuthId == userId);
             });
         }
 
@@ -402,7 +451,6 @@ namespace ServiceStack.Authentication.Marten
                     user.Permissions.AddRange(missingPermissins);
 
                 SaveUserAuth(session, user);
-                session.SaveChanges();
             });
         }
 
@@ -419,7 +467,6 @@ namespace ServiceStack.Authentication.Marten
                 permissions.Each(permission => user.Permissions.Remove(permission));
 
                 SaveUserAuth(session, user);
-                session.SaveChanges();
             });
         }
 
@@ -451,7 +498,6 @@ namespace ServiceStack.Authentication.Marten
                 {
                     session.Store(key);
                 }
-                session.SaveChanges();
             });
         }
     }

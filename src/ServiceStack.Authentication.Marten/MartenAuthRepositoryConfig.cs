@@ -24,7 +24,7 @@ namespace ServiceStack.Authentication.Marten
         public IMartenAuthRepositoryConfig UseAuthDetails<TAuthDetails>() where TAuthDetails : IUserAuthDetails
         {
             _storeOptions.Schema.For<TAuthDetails>()
-                .Duplicate(x => x.UserAuthId);                
+                .Duplicate(x => x.UserAuthId);
             return this;
         }
 
